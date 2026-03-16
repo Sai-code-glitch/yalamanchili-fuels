@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: var(--hp-blue);">Daily Sales Ledger</h2>
+        <a href="/entry" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add New Entry</a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Fuel Type</th>
+                        <th>Opening (Ltrs)</th>
+                        <th>Closing (Ltrs)</th>
+                        <th>Sales (Ltrs)</th>
+                        <th>Cash (₹)</th>
+                        <th>Digital (₹)</th>
+                        <th>Total (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.date.strftime('%d %b %Y') }}</td>
+                        <td><span class="badge bg-info text-dark">{{ log.fuel_type.name }}</span></td>
+                        <td>{{ "%.2f"|format(log.opening_reading) }}</td>
+                        <td>{{ "%.2f"|format(log.closing_reading) }}</td>
+                        <td class="fw-bold text-success">{{ "%.2f"|format(log.closing_reading - log.opening_reading) }}</td>
+                        <td>₹{{ "{:,.2f}".format(log.cash_sales) }}</td>
+                        <td>₹{{ "{:,.2f}".format(log.digital_sales) }}</td>
+                        <td class="fw-bold">₹{{ "{:,.2f}".format(log.cash_sales + log.digital_sales) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">No records found. Start by adding an entry!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 bg-primary text-white shadow">
+            <div class="card-body">
+                <h6 class="text-uppercase small">Cumulative Volume (Ltrs)</h6>
+                <h2 class="fw-bold">{{ "%.2f"|format(total_vol) }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 bg-success text-white shadow">
+            <div class="card-body">
+                <h6 class="text-uppercase small">Total Revenue (INR)</h6>
+                <h2 class="fw-bold">₹{{ "{:,.2f}".format(total_rev) }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-3 shadow-sm">
+            <h5>Petrol Tank (Main)</h5>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 75%;">75% Full</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3 shadow-sm">
+            <h5>Diesel Tank (Main)</h5>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: 40%;">40% - Refill Soon</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mt-3 border-0 shadow-sm">
+    <div class="card-body">
+        <h6><i class="bi bi-cpu text-primary"></i> Station Status</h6>
+        <hr>
+        <p class="small mb-1">Database: <span class="badge bg-success">Online</span></p>
+        <p class="small mb-1">Last Sync: Today, {{ info.last_updated }}</p>
+        <p class="small">Location: Eedulapalem Gateway</p>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+            <h6>Daily Target Progress</h6>
+            <div class="progress mt-3" style="height: 20px;">
+                {% set goal_percent = (total_vol / 5000) * 100 %}
+                <div class="progress-bar bg-info" role="progressbar" 
+                     style="width: {{ goal_percent }}%;" 
+                     aria-valuenow="{{ goal_percent }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ "%.0f"|format(goal_percent) }}%
+                </div>
+            </div>
+            <p class="small text-muted mt-2">Goal: 5,000 Liters / Day</p>
+        </div>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <input type="text" id="recordSearch" class="form-control" placeholder="Search by date (e.g., 16 Mar)...">
+    </div>
+</div>
+
+<script>
+    // Simple JavaScript to filter table rows locally
+    document.getElementById('recordSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll("tbody tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+        });
+    });
+</script>
+<div class="col-md-4">
+    <div class="card bg-info text-white shadow-sm">
+        <div class="card-body">
+            <h6>Avg. Daily Volume</h6>
+            <h2>{{ "%.2f"|format(avg_vol) }} Ltrs</h2>
+        </div>
+    </div>
+</div>
