@@ -5,10 +5,16 @@ import json
 
 def register_routes(app):
     
-    # --- 1. HP DASHBOARD (HOME) ---
+    # --- 1. HP DASHBOARD (With Payment Analytics) ---
     @app.route('/')
     def home():
         fuels = FuelType.query.all()
+        logs = DailyLog.query.all()
+
+        # Calculate Total Cash vs Digital for the Doughnut Chart
+        total_cash = sum(log.cash_sales for log in logs) if logs else 0
+        total_digi = sum(log.digital_sales for log in logs) if logs else 0
+        
         inventory = []
         for fuel in fuels:
             # Technical Logic: Current Stock = (Sum of Receipts) - (Sum of Sales)
@@ -31,7 +37,13 @@ def register_routes(app):
             "name": "Yalamanchili Fuels",
             "last_updated": datetime.now().strftime("%d %b %Y %H:%M")
         }
-        return render_template('index.html', info=outlet_info, prices=fuels, inventory=inventory)
+
+        return render_template('index.html', 
+                               info=outlet_info, 
+                               prices=fuels, 
+                               inventory=inventory,
+                               cash_val=total_cash,
+                               digi_val=total_digi)
 
     # --- 2. DAILY METER ENTRY ---
     @app.route('/entry', methods=['GET', 'POST'])
