@@ -1,73 +1,94 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4 bg-white shadow-sm p-3 rounded-3 border-start border-primary border-5">
-        <div class="col-md-8 d-flex align-items-center">
-            <img src="https://www.hindustanpetroleum.com/images/hp_logo.png" height="35" class="me-3">
-            <h4 class="mb-0 fw-bold text-primary me-3">Eedulapalem Gateway</h4>
-            <span class="badge bg-success me-2"><i class="bi bi-shield-check"></i> System Secure</span>
-            <span class="badge border border-primary text-primary">ID: HP-GT-522616</span>
-        </div>
-        <div class="col-md-4 text-end">
-            <small class="text-muted fw-bold">SERVER TIME: {{ info.last_updated }}</small>
-            <div class="spinner-grow spinner-grow-sm text-danger ms-2" role="status"></div>
-        </div>
-    </div>
-
-    <h5 class="text-uppercase small fw-bold text-muted mb-3">Live Inventory Monitoring</h5>
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card hp-border-blue h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-fuel-pump display-5 text-primary"></i>
-                    <h6 class="mt-3 text-muted small">PETROL (MS)</h6>
-                    <div class="progress my-3" style="height: 30px; border-radius: 15px;">
-                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 75%;">75%</div>
-                    </div>
-                    <p class="fw-bold mb-0">15,000 / 20,000 Ltrs</p>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 border-start border-primary border-5">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <h3 class="mb-0 text-primary fw-bold">Eedulapalem Gateway</h3>
+                    <span class="badge bg-success ms-3 text-uppercase" style="font-size: 10px;">System Secure</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card hp-border-red h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-fuel-pump-fill display-5 text-danger"></i>
-                    <h6 class="mt-3 text-muted small text-danger">DIESEL (HSD) - LOW STOCK</h6>
-                    <div class="progress my-3" style="height: 30px; border-radius: 15px;">
-                        <div class="progress-bar bg-danger" style="width: 20%;">20%</div>
-                    </div>
-                    <p class="fw-bold mb-0 text-danger">4,000 / 20,000 Ltrs</p>
+                <div class="text-end">
+                    <p class="mb-0 text-muted small">SERVER TIME: {{ info.last_updated }} <span class="text-danger">●</span></p>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 bg-dark text-white h-100">
-                <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <h6 class="text-secondary small">DIGITAL REVENUE (24H)</h6>
-                    <h2 class="display-6 fw-bold text-warning">₹ 48,250.00</h2>
-                    <p class="small text-secondary mb-0">HP Pay • UPI • Card</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card hp-border-blue">
-        <div class="card-header bg-white py-3">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-currency-rupee text-primary"></i> Current Retail Selling Price (RSP)</h6>
-        </div>
-        <div class="card-body">
-            <div class="row text-center">
-                {% for fuel in prices %}
-                <div class="col-md-6 border-end py-2">
-                    <h1 class="display-4 fw-bold text-dark">₹{{ fuel.base_price }}</h1>
-                    <span class="badge bg-light text-dark border">{{ fuel.name }}</span>
-                </div>
-                {% endfor %}
             </div>
         </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="row">
+            {% for fuel in inventory %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-fuel-pump text-primary h1"></i>
+                        <h6 class="text-uppercase text-muted mt-2 small">{{ fuel.name }}</h6>
+                        <div class="progress my-3" style="height: 30px; border-radius: 15px;">
+                            <div class="progress-bar {{ fuel.color }} progress-bar-striped progress-bar-animated" 
+                                 style="width: {{ fuel.percent }}%;">
+                                {{ fuel.percent|int }}%
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between px-2">
+                            <span class="fw-bold">{{ "{:,.0f}".format(fuel.stock) }} Ltrs</span>
+                            <span class="text-muted small">/ 20,000 Ltrs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <h6 class="text-secondary small mb-4 text-uppercase">Revenue Analytics</h6>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-warning fw-bold mb-0">₹ {{ "{:,.2f}".format(cash_val + digi_val) }}</h3>
+                    <p class="text-muted small">Total Revenue Analyzed</p>
+                </div>
+                <hr class="border-secondary">
+                <div class="row small mt-2 text-start">
+                    <div class="col-6">
+                        <span class="text-danger">●</span> Cash: <br><strong>₹{{ "{:,.0f}".format(cash_val) }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-primary">●</span> Digital: <br><strong>₹{{ "{:,.0f}".format(digi_val) }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('paymentChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Cash', 'Digital'],
+                datasets: [{
+                    data: [{{ cash_val }}, {{ digi_val }}],
+                    backgroundColor: ['#E31E24', '#003399'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                cutout: '80%',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+</script>
 {% endblock %}
